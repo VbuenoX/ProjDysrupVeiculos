@@ -5,14 +5,19 @@ export const Container = styled.TouchableOpacity`
   min-height: 56px;
   max-height: 56px;
   border-radius: 6px;
+
   align-items: center;
   justify-content: center;
-  background-color: #00875f;
-  margin-top: 32px;
+
+  background-color: ${({ theme }) => theme.COLORS.BRAND_MID};
 `;
 
 export const Title = styled.Text`
-  color: #ffffff;
-  font-size: 16px;
-  font-family: "Roboto_700Bold";
+  color: ${({ theme }) => theme.COLORS.WHITE};
+  font-size: ${({ theme }) => theme.FONT_SIZE.MD}px;
+  font-family: ${({ theme }) => theme.FONT_FAMILY.BOLD};
 `;
+
+export const Loading = styled.ActivityIndicator.attrs(({ theme }) => ({
+  color: theme.COLORS.WHITE,
+}))``;

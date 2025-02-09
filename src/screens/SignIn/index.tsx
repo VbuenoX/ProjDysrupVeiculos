@@ -1,32 +1,74 @@
-import { Container, Title, Slogan } from "./styles";
-import { Button } from "../../components/Button";
-import backgroundImg from "../../assets/background.png";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { WEB_CLIENT_ID, IOS_CLIENT_ID } from "@env";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { Realm, useApp } from "@realm/react";
 
-GoogleSignin.configure({
-  scopes: ["email", "profile"],
-  webClientId: WEB_CLIENT_ID,
-  iosClientId: IOS_CLIENT_ID,
-});
+import { Container, Title, Slogan } from "./styles";
+
+import backgroundImg from "../../assets/background.png";
+import { Button } from "../../components/Button";
+
+import { ANDROID_CLIENT_ID, IOS_CLIENT_ID } from "@env";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export function SignIn() {
-  async function handleGoogleSignIn() {
-    try {
-      const response = await GoogleSignin.signIn();
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Não foi possível fazer login com o Google");
-    }
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [_, response, googleSignIng] = Google.useAuthRequest({
+    androidClientId: ANDROID_CLIENT_ID,
+    iosClientId: IOS_CLIENT_ID,
+    scopes: ["profile", "email"],
+  });
+
+  const app = useApp();
+
+  function handleGoogleSignIn() {
+    setIsAuthenticating(true);
+
+    googleSignIng().then((response) => {
+      if (response?.type !== "success") {
+        setIsAuthenticating(false);
+      }
+    });
   }
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      if (response.authentication?.idToken) {
+        const credentials = Realm.Credentials.jwt(
+          response.authentication.idToken
+        );
+
+        app.logIn(credentials).catch((error) => {
+          console.log(error);
+          Alert.alert(
+            "Entrar",
+            "Não foi possível conectar-se a sua conta google."
+          );
+          setIsAuthenticating(false);
+        });
+      } else {
+        Alert.alert(
+          "Entrar",
+          "Não foi possível conectar-se a sua conta google."
+        );
+        setIsAuthenticating(false);
+      }
+    }
+  }, [response]);
 
   return (
     <Container source={backgroundImg}>
       <Title>Dysrup Veiculos</Title>
+
       <Slogan>Gestão de uso de veículos</Slogan>
-      <Button title="Entrar com o Google" onPress={handleGoogleSignIn} />
+
+      <Button
+        title="Entrar com Google"
+        onPress={handleGoogleSignIn}
+        isLoading={isAuthenticating}
+      />
     </Container>
   );
 }

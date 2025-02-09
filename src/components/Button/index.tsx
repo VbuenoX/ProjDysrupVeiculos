@@ -1,14 +1,16 @@
+import React from "react";
 import { TouchableOpacityProps } from "react-native";
-import { Container, Title } from "./styles";
+import { Container, Loading, Title } from "./styles";
 
-interface ButtonProps extends TouchableOpacityProps {
+type Props = TouchableOpacityProps & {
   title: string;
-}
+  isLoading?: boolean;
+};
 
-export function Button({ title, onPress }: ButtonProps) {
+export function Button({ title, isLoading = false, ...rest }: Props) {
   return (
-    <Container activeOpacity={0.7} onPress={onPress}>
-      <Title>{title}</Title>
+    <Container activeOpacity={0.7} disabled={isLoading} {...rest}>
+      {isLoading ? <Loading /> : <Title>{title}</Title>}
     </Container>
   );
 }
